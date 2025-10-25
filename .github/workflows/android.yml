@@ -24,3 +24,9 @@ jobs:
       run: chmod +x android/gradlew
     - name: Build with Gradle
       run: cd android && ./gradlew build
+
+    - name: Releasing using Hub
+      uses: sangatdesai/release-apk@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        APP_FOLDER: app
