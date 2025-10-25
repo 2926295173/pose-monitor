@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
@@ -25,8 +25,25 @@ jobs:
     - name: Build with Gradle
       run: cd android && ./gradlew build
 
-    - name: Releasing using Hub
-      uses: sangatdesai/release-apk@main
+    - name: Upload apk directory
+      uses: actions/upload-artifact@main
+      with:
+        name: Zuozibao
+        path: android/app/build/outputs/apk/release/
+
+    - name: Generate release tag
+      id: tag
+      run: |
+        echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        touch release.txt
+        [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
+        echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@master
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        APP_FOLDER: app
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: android/app/build/outputs/apk/release/app-release.apk
